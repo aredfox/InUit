@@ -129,11 +129,12 @@ namespace InUit.Ui.Desktop.WinForms
         private void Main_KeyDown(object sender, KeyEventArgs e) {
             if (e.KeyData == Keys.Up) {
                 ChangePeriod(_appCtx.Period.Next());
+                e.Handled = true;
             }
             if (e.KeyData == Keys.Down) {
                 ChangePeriod(_appCtx.Period.Previous());
-            }
-            e.Handled = true;
+                e.Handled = true;
+            }            
         }
         private void ChangePeriod(Period period) {
             uxPeriod.Value = new DateTime(period.Year, period.Month, 1);
