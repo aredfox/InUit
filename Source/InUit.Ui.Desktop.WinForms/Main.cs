@@ -15,9 +15,11 @@ namespace InUit.Ui.Desktop.WinForms
         private bool _quit = false;
 
         public Main(AppContext appContext) {
-            InitializeComponent();            
+            InitializeComponent();
 
-            if(appContext == null) {
+            KeyPreview = true;
+
+            if (appContext == null) {
                 throw new ArgumentNullException(nameof(appContext));
             }
             _appCtx = appContext;
@@ -46,9 +48,10 @@ namespace InUit.Ui.Desktop.WinForms
 
                 if (_quit) {
                     this.Close();
-                } else {
+                }
+                else {
                     _appCtx.Settings.WorkingDirectory = new DirectoryInfo(folderBrowser.SelectedPath);
-                    _appCtx.Settings.Save();                    
+                    _appCtx.Settings.Save();
                 }
             }
         }
@@ -63,10 +66,10 @@ namespace InUit.Ui.Desktop.WinForms
 
         private void UpdateBook() {
             uxIn.Items.Clear();
-            uxOut.Items.Clear();            
+            uxOut.Items.Clear();
 
             var book = _appCtx.Books.GetOrCreate(_appCtx.Period.Current);
-            foreach(var line in book.Lines.OrderBy(l => l.ToString())) {                
+            foreach (var line in book.Lines.OrderBy(l => l.ToString())) {
                 switch (line.Category) {
                     case LineCategory.In:
                         uxIn.Items.Add(line, line.IsOk);
@@ -91,7 +94,7 @@ namespace InUit.Ui.Desktop.WinForms
                     Name = uxInOutName.Text.Trim().Replace("+", "").Replace("-", ""),
                     When = uxInOutDateTime.Value
                 });
-                book = _appCtx.Books.Save(book);                
+                book = _appCtx.Books.Save(book);
             }
 
             uxInOutName.Text = "";
@@ -107,28 +110,45 @@ namespace InUit.Ui.Desktop.WinForms
                     Name = uxInOutName.Text.Trim().Replace("+", "").Replace("-", ""),
                     When = uxInOutDateTime.Value
                 });
-                _appCtx.Books.Save(book);                
+                _appCtx.Books.Save(book);
             }
 
             uxInOutName.Text = "";
-            UpdateBook();            
+            UpdateBook();
         }
 
         private void uxPeriod_ValueChanged(object sender, EventArgs e) {
             _appCtx.Period.Reset(uxPeriod.Value);
-            UpdateTitle();
-            UpdateBook();            
+            PeriodChanged();
         }
-                
+        private void PeriodChanged() {
+            UpdateTitle();
+            UpdateBook();
+        }
+
+        private void Main_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyData == Keys.Up) {
+                ChangePeriod(_appCtx.Period.Next());
+            }
+            if (e.KeyData == Keys.Down) {
+                ChangePeriod(_appCtx.Period.Previous());
+            }
+            e.Handled = true;
+        }
+        private void ChangePeriod(Period period) {
+            uxPeriod.Value = new DateTime(period.Year, period.Month, 1);
+        }
+
         private bool CheckInput(string name) {
             try {
                 if (String.IsNullOrEmpty(name) || String.IsNullOrWhiteSpace(name)) {
                     throw new ArgumentNullException(nameof(name), "Please enter a valid name.");
                 }
-                if(name.Replace("+", "").Replace("-", "").Trim().Equals(String.Empty)) {
+                if (name.Replace("+", "").Replace("-", "").Trim().Equals(String.Empty)) {
                     throw new ArgumentNullException(nameof(name), "Please enter a valid name.");
                 }
-            } catch(Exception ex) {
+            }
+            catch (Exception ex) {
                 MessageBox.Show(this, ex.ToString(), "Error while adding new line...", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
@@ -136,7 +156,7 @@ namespace InUit.Ui.Desktop.WinForms
             return true;
         }
 
-        private void uxInOutName_TextChanged(object sender, EventArgs e) {            
+        private void uxInOutName_TextChanged(object sender, EventArgs e) {
             if (uxInOutName.Text.EndsWith("+")) {
                 uxIn_Click(null, null);
             }
